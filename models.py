@@ -179,7 +179,7 @@ class Message(db.Model):
     # user.liked_messages returns messages that the user liked
     likers = db.relationship(
         "User",
-        secondary="likes",
+        secondary="likes", #Like?
         backref=db.backref('liked_messages', lazy='dynamic'),
         lazy='dynamic')
 
