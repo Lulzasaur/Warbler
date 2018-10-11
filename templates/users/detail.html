@@ -29,7 +29,9 @@
           </li>
           <li class="stat">
             <p class="small">Likes</p>
-            <h4>{{ g.user.number_of_likes }}</h4>
+            <h4>
+              <a href="/users/{{ user.id }}/likes">{{ g.user.number_of_likes }}</a>
+            </h4>
           </li>
           <div class="ml-auto">
             {% if g.user.id == user.id %}

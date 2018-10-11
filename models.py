@@ -74,8 +74,6 @@ class User(db.Model):
 
     messages = db.relationship('Message', backref='user', lazy='dynamic')
 
-    likes = db.relationship('Like', backref='user', lazy='dynamic')
-
     followers = db.relationship(
         "User",
         secondary="follows",
@@ -83,7 +81,6 @@ class User(db.Model):
         secondaryjoin=(FollowersFollowee.followee_id == id),
         backref=db.backref('following', lazy='dynamic'),
         lazy='dynamic')
-
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
@@ -179,7 +176,7 @@ class Message(db.Model):
     # user.liked_messages returns messages that the user liked
     likers = db.relationship(
         "User",
-        secondary="likes", #Like?
+        secondary="likes", 
         backref=db.backref('liked_messages', lazy='dynamic'),
         lazy='dynamic')
 
@@ -203,6 +200,12 @@ class Like(db.Model):
 
     message_id = db.Column(db.Integer, db.ForeignKey('messages.id', ondelete="cascade"),
         primary_key=True)
+
+    # Create two relationships here - Message, User
+
+    liker = db.relationship('User', backref='likes')
+
+    liked_message = db.relationship('Message', backref='likes')
 
 def connect_db(app):
     """Connect this database to provided Flask app.

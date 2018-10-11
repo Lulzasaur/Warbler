@@ -157,6 +157,18 @@ def show_following(user_id):
     return render_template('users/following.html', user=user)
 
 
+@app.route('/users/<int:user_id>/likes')
+def show_liked_messages(user_id):
+    """Show all the messages that a user has liked in chronological order"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    user = User.query.get_or_404(user_id)
+    return render_template('users/likes.html', user=user)
+
+
 @app.route('/users/<int:user_id>/followers')
 def users_followers(user_id):
     """Show list of followers of this user."""
@@ -228,6 +240,7 @@ def profile():
         return redirect(f"/users/{g.user.id}")
         
     return render_template('/users/edit.html', form=form,user=g.user)
+
 
 @app.route('/users/delete', methods=["POST"])
 def delete_user():
@@ -322,22 +335,20 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
-@app.route('/liked', methods=['POST'])
-def liked_post():
+@app.route('/<int:message_id>/<int:user_id>/toggle_like', methods=['POST'])
+def toggle_like(message_id, user_id):
     """Function for liking a warbler"""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    
-    message_id = request.form['message_id']
-
     message = Message.query.get(message_id)
 
     if message.liked_by_user(g.user):
         
-        unliked = g.user.likes.filter(Like.message_id==message_id).first()
+        unliked = [like for like in g.user.likes if like.message_id == int(message_id)][0]
+
         db.session.delete(unliked)
         db.session.commit()
 
