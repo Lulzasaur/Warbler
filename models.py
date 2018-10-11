@@ -74,6 +74,8 @@ class User(db.Model):
 
     messages = db.relationship('Message', backref='user', lazy='dynamic')
 
+    likes = db.relationship('Like', backref='user', lazy='dynamic')
+
     followers = db.relationship(
         "User",
         secondary="follows",
@@ -81,6 +83,7 @@ class User(db.Model):
         secondaryjoin=(FollowersFollowee.followee_id == id),
         backref=db.backref('following', lazy='dynamic'),
         lazy='dynamic')
+
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"

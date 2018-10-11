@@ -322,6 +322,32 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
+@app.route('/liked', methods=['POST'])
+def liked_post():
+    """Function for liking a warbler"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    
+    message_id = request.form['message_id']
+
+    message = Message.query.get(message_id)
+
+    if message.liked_by_user(g.user):
+        
+        unliked = g.user.likes.filter(Like.message_id==message_id).first()
+        db.session.delete(unliked)
+        db.session.commit()
+
+    else:
+
+        liked = Like(user_id=g.user.id,message_id=message_id)
+        db.session.add(liked)
+        db.session.commit()
+        
+    return redirect("/")
 
 @app.errorhandler(404)
 def page_not_found(e):
