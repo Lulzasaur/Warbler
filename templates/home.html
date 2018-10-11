@@ -50,7 +50,8 @@
               <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
-              <div><form class='like_button' method='POST' action='/{{msg.id}}/{{g.user.id}}/toggle_like'><button><i class="fa{% if msg.liked_by_user(g.user) %}s{% else %}r{% endif%} fa-thumbs-up"></i></button></form></div>
+              <div><form class='like_button' method='POST' action='/{{msg.id}}/toggle_like'><button>
+                <i class="{{ 'fas' if msg.liked_by_user(g.user) else 'far' }} fa-thumbs-up"></i></button></form></div>
             </div>
       
           </li>

@@ -183,20 +183,32 @@ class Message(db.Model):
     def liked_by_user(self, user):
         """Is this message liked by the user?"""
         
-        liked = (Like
-                .query
-                .filter((Like.user_id == user.id) & (Like.message_id == self.id))
-                .all())
+        return user.id in [like.user_id for like in self.likes]
+
+    def toggle_like(self,user):
+        """Function for toggling like on a warble"""
+
+        if self.liked_by_user(user):
+            
+            unliked = [like for like in user.likes if like.message_id == int(self.id)][0]
+            db.session.delete(unliked)
+
+        else:
+
+            liked = Like(user_id=user.id,message_id=self.id)
+            db.session.add(liked)
         
-        return bool(liked)
 
 class Like(db.Model):
     """Individual like for a message"""
 
     __tablename__ = 'likes'
 
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"),
-        primary_key=True)
+    user_id = db.Column(
+        db.Integer, 
+        db.ForeignKey('users.id', ondelete="cascade"),
+        primary_key=True,
+    )
 
     message_id = db.Column(db.Integer, db.ForeignKey('messages.id', ondelete="cascade"),
         primary_key=True)

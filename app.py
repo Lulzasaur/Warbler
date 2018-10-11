@@ -335,9 +335,9 @@ def homepage():
     else:
         return render_template('home-anon.html')
 
-@app.route('/<int:message_id>/<int:user_id>/toggle_like', methods=['POST'])
-def toggle_like(message_id, user_id):
-    """Function for liking a warbler"""
+@app.route('/<int:message_id>/toggle_like', methods=['POST'])
+def toggle_like(message_id):
+    """Function for toggling a warble"""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -345,20 +345,25 @@ def toggle_like(message_id, user_id):
 
     message = Message.query.get(message_id)
 
-    if message.liked_by_user(g.user):
-        
-        unliked = [like for like in g.user.likes if like.message_id == int(message_id)][0]
+    message.toggle_like(g.user)
+    db.session.commit()
 
-        db.session.delete(unliked)
-        db.session.commit()
-
-    else:
-
-        liked = Like(user_id=g.user.id,message_id=message_id)
-        db.session.add(liked)
-        db.session.commit()
-        
     return redirect("/")
+
+@app.route('/<int:message_id>/toggle_like/likes_page', methods=['POST'])
+def other_toggle_like(message_id):
+    """Function for toggling a warble"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    message = Message.query.get(message_id)
+
+    message.toggle_like(g.user)
+    db.session.commit()
+
+    return redirect(f"/users/{g.user.id}/likes")
 
 @app.errorhandler(404)
 def page_not_found(e):

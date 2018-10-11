@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, User, Message, FollowersFollowee
+from models import db, User, Message, FollowersFollowee, Like
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -45,6 +45,7 @@ class UserModelTestCase(TestCase):
         """Does basic model work?"""
 
         u = User(
+            id=1,
             email="test@test.com",
             username="testuser",
             password="HASHED_PASSWORD"
@@ -56,3 +57,51 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(u.messages.count(), 0)
         self.assertEqual(u.followers.count(), 0)
+
+    def test_repr(self):
+        """Does this function show user?"""
+
+        u = User(
+            id=1,
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.commit()
+
+        #user should have the following message
+        self.assertEqual(repr(u),'<User #1: testuser, test@test.com>')
+        
+    def test_is_followed_by(self):
+        """Does this function show user?"""
+
+        u = User(
+            id=1,
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD",
+        )
+
+        u2 = User(
+            id=2,
+            email="test2@test.com",
+            username="testuser2",
+            password="HASHED_PASSWORD2",
+        )
+
+        follow = FollowersFollowee(
+            followee_id=1,
+            follower_id=2
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.add(follow)
+        db.session.commit()
+
+        #user should have the following message
+        self.assertEqual(u.is_followed_by(2),True)
+        self.assertEqual(u.followers.query.first(),u2)
+    
