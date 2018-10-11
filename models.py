@@ -94,6 +94,16 @@ class User(db.Model):
         """Is this user following `other_use`?"""
 
         return bool(self.following.filter_by(id=other_user.id).first())
+    
+    @property
+    def number_of_likes(self):
+        """How many likes?"""
+        total_liked = len(Like
+                        .query
+                        .filter(Like.user_id == self.id)
+                        .all())
+        
+        return total_liked
 
     @classmethod
     def signup(cls, username, email, password, image_url):
@@ -162,7 +172,34 @@ class Message(db.Model):
         db.ForeignKey('users.id', ondelete='CASCADE'),
         nullable=False,
     )
+    # message.likers returns users that liked the message.
+    # user.liked_messages returns messages that the user liked
+    likers = db.relationship(
+        "User",
+        secondary="likes",
+        backref=db.backref('liked_messages', lazy='dynamic'),
+        lazy='dynamic')
 
+    def liked_by_user(self, user):
+        """Is this message liked by the user?"""
+        
+        liked = (Like
+                .query
+                .filter((Like.user_id == user.id) & (Like.message_id == self.id))
+                .all())
+        
+        return bool(liked)
+
+class Like(db.Model):
+    """Individual like for a message"""
+
+    __tablename__ = 'likes'
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="cascade"),
+        primary_key=True)
+
+    message_id = db.Column(db.Integer, db.ForeignKey('messages.id', ondelete="cascade"),
+        primary_key=True)
 
 def connect_db(app):
     """Connect this database to provided Flask app.
