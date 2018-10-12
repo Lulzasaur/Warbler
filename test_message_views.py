@@ -8,7 +8,7 @@
 import os
 from unittest import TestCase
 
-from models import db, connect_db, Message, User
+from models import db, connect_db, Message, User, Like
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -71,3 +71,58 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+
+
+    def test_show_message(self):
+        """Can show a message by itself?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+
+            resp = c.post("/messages/new", data={"text": "Hello"})
+
+            message_id = Message.query.filter(Message.user_id==self.testuser.id).one().id
+
+            resp_show = c.get(f"/messages/{message_id}")
+
+            self.assertEqual(resp_show.status_code, 200)
+
+            self.assertIn(b"Hello", resp_show.data)
+
+    def test_destroy_message(self):
+        """Can show a message by itself?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+
+            resp = c.post("/messages/new", data={"text": "Hello"})
+            
+            message_id = Message.query.filter(Message.user_id==self.testuser.id).one().id
+            
+            before_delete = Message.query.all()
+
+            self.assertEqual(len(before_delete), 1)
+
+            resp_del = c.post(f"/messages/{message_id}/delete")
+
+            self.assertEqual(resp.status_code, 302)
+
+            after_delete = Message.query.all()
+
+            self.assertEqual(len(after_delete), 0)
+
+
