@@ -232,9 +232,11 @@ class UserViewTestCase(TestCase):
 
             db.session.commit()
 
-            followers = FollowersFollowee(followee_id=self.testuser1.id,follower_id=testuser2.id,)
+            testuser2.followers.append(self.testuser1)
 
-            db.session.add(followers)
+            # followers = FollowersFollowee(followee_id=self.testuser1.id,follower_id=testuser2.id,)
+
+            # db.session.add(followers)
 
             db.session.commit()
 
@@ -256,9 +258,6 @@ class UserViewTestCase(TestCase):
 
             # Now, that session setting is saved, so we can have
             # the rest of ours test
-
-
-            # import pdb; pdb.set_trace()
 
             u2 = User(
                         id=1,
@@ -293,6 +292,47 @@ class UserViewTestCase(TestCase):
             self.assertEqual(resp.status_code, 200)
 
             self.assertIn(b"blahblahblah", resp.data)
+
+    def test_show_profile(self):
+        """Can we show user profile?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+        
+        resp = c.get(f"/users/profile")
+                                    
+        self.assertIn(b"test@test.com", resp.data)
+        self.assertIn(b"rose-blue-flower-rose-blooms", resp.data)
+
+    def test_show_profile(self):
+        """Can we show user profile?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+        
+        resp = c.post(f"/users/profile",data={'username':'otterman',"email": "otteremail@otters.com",'password':'testuser'},follow_redirects=True)
+
+        self.assertEqual(resp.status_code, 200)                    
+
+        self.assertIn(b"otterman", resp.data)
+        self.assertIn(b"rose-blue-flower-rose-blooms", resp.data)
+        
+
+    
 
     
 
