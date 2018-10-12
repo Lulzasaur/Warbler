@@ -234,6 +234,8 @@ def profile():
         g.user.username=form.data['username'],
         g.user.email=form.data['email'],
         g.user.image_url=form.data['image_url'] or None,
+        g.user.image_url=form.data['bio'] or None,
+        g.user.image_url=form.data['location'] or None,
         
         db.session.commit()
         
