@@ -74,12 +74,12 @@ class User(db.Model):
 
     messages = db.relationship('Message', backref='user', lazy='dynamic')
 
-    followers = db.relationship(
+    followers = db.relationship(#was followers
         "User",
         secondary="follows",
         primaryjoin=(FollowersFollowee.follower_id == id),
         secondaryjoin=(FollowersFollowee.followee_id == id),
-        backref=db.backref('following', lazy='dynamic'),
+        backref=db.backref('following', lazy='dynamic'),#was following
         lazy='dynamic')
 
     def __repr__(self):

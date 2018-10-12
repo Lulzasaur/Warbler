@@ -41,6 +41,7 @@ class UserViewTestCase(TestCase):
 
         User.query.delete()
         Message.query.delete()
+        Like.query.delete()
 
         self.client = app.test_client()
 
@@ -48,7 +49,7 @@ class UserViewTestCase(TestCase):
                                     username="testuser1",
                                     email="test@test.com",
                                     password="testuser",
-                                    image_url=None,
+                                    image_url='https://images.pexels.com/photos/67636/rose-blue-flower-rose-blooms-67636.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
                                     )
 
         db.session.commit()
@@ -121,7 +122,7 @@ class UserViewTestCase(TestCase):
 
             
 
-                followers = FollowersFollowee(followee_id=self.testuser1.id,follower_id=testuser2.id,)
+                followers = FollowersFollowee(followee_id=testuser2.id,follower_id=self.testuser1.id,)
 
                 db.session.add(followers)
 
@@ -129,13 +130,170 @@ class UserViewTestCase(TestCase):
 
                 resp = c.get(f"/users/{testuser2.id}/following")
 
-                
+                self.assertEqual(testuser2.following.one().username,'testuser1')
+
+                self.assertEqual(resp.status_code, 200)
+
+                self.assertIn(b'rose-blue-flower-rose-blooms-67636', resp.data)
+
+    def test_users_followers(self):
+            """Can we show user followers?"""
+
+            # Since we need to change the session to mimic logging in,
+            # we need to use the changing-session trick:
+
+            with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.testuser1.id
+
+                # Now, that session setting is saved, so we can have
+                # the rest of ours test
+
+
+                # import pdb; pdb.set_trace()
+
+                testuser2 = User.signup(
+                                    username="testuser2",
+                                    email="test2@test.com",
+                                    password="testuser2",
+                                    image_url=None,
+                                    )
+
+                db.session.commit()
+
+                followers = FollowersFollowee(followee_id=self.testuser1.id,follower_id=testuser2.id,)
+
+                db.session.add(followers)
+
+                db.session.commit()
+
+                resp = c.get(f"/users/{testuser2.id}/followers")
 
                 self.assertEqual(testuser2.followers.one().username,'testuser1')
 
                 self.assertEqual(resp.status_code, 200)
 
-                self.assertIn(b"testuser1", resp.data)
+                self.assertIn(b"testuser2", resp.data)
+
+
+    def test_add_follow(self):
+            """Can we add follow and redirect?"""
+
+            # Since we need to change the session to mimic logging in,
+            # we need to use the changing-session trick:
+
+            with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.testuser1.id
+
+                # Now, that session setting is saved, so we can have
+                # the rest of ours test
+
+
+                # import pdb; pdb.set_trace()
+
+                testuser2 = User.signup(
+                                    username="testuser2",
+                                    email="test2@test.com",
+                                    password="testuser2",
+                                    image_url=None,
+                                    )
+
+                db.session.commit()
+
+                resp = c.post(f"/users/follow/{testuser2.id}")
+
+                self.assertEqual(testuser2.followers.one().username,'testuser1')
+
+                self.assertEqual(resp.status_code, 302)
+        
+    def test_stop_following(self):
+        """Can we stop following?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+
+
+            # import pdb; pdb.set_trace()
+
+            testuser2 = User.signup(
+                                username="testuser2",
+                                email="test2@test.com",
+                                password="testuser2",
+                                image_url=None,
+                                )
+
+            db.session.commit()
+
+            followers = FollowersFollowee(followee_id=self.testuser1.id,follower_id=testuser2.id,)
+
+            db.session.add(followers)
+
+            db.session.commit()
+
+            resp = c.post(f"/users/stop-following/{testuser2.id}")
+
+            self.assertEqual(len(testuser2.followers.all()),0)
+
+            self.assertEqual(resp.status_code, 302)
+
+    def test_show_liked_messages(self):
+        """Can we show liked messages?"""
+
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser1.id
+
+            # Now, that session setting is saved, so we can have
+            # the rest of ours test
+
+
+            # import pdb; pdb.set_trace()
+
+            u2 = User(
+                        id=1,
+                        email="test123@test.com",
+                        username="test123user",
+                        password="HASHED_PASSWORD",
+                    )
+
+            db.session.add(u2)
+            db.session.commit()
+
+            m1 = Message(
+                        id=1,
+                        text='blahblahblah',
+                        user_id=u2.id,
+                    )
+
+            l1 = Like(
+                        user_id=self.testuser1.id,
+                        message_id=1
+                    )
+                        
+            db.session.add(m1)
+            db.session.commit()
+            db.session.add(l1)
+            db.session.commit()
+
+            resp = c.get(f"/users/{self.testuser1.id}/likes")
+
+            self.assertEqual(self.testuser1.number_of_likes,1)
+
+            self.assertEqual(resp.status_code, 200)
+
+            self.assertIn(b"blahblahblah", resp.data)
+
     
 
 
