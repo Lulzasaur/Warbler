@@ -29,7 +29,11 @@ flask run
 
 ## Features
 
-- Full Flask application utilizing bcrypt for encryption.
+- Users can sign up with a password protected account.
+- Users can "like", post and follow "warbles" or tweets.
+- Full unit and integration tests.
+- Passwords encrypted and stored in database.
+- Full CRUD on user profiles as well as "warbles".
 
 <img src="assets/Warbler_Home_Page.png" title="WarBlarBlarg" alt="WarBlarBlarg">
 
