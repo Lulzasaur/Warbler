@@ -37,8 +37,7 @@ flask run
 
 ## Team
 
-| <a href="https://github.com/silasburger" target="_blank">**Silas Burger**</a> | 
-<img src='https://avatars1.githubusercontent.com/u/29185585?s=460&v=4'>
+| <a href="https://github.com/silasburger" target="_blank">**Silas Burger**</a>
 | <a href="https://github.com/silasburger" target="_blank">`github.com/silasburger`</a> | 
 
 
